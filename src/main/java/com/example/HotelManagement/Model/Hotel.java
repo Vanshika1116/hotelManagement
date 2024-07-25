@@ -37,4 +37,7 @@ public class Hotel implements Serializable {
     @Column(name = "contactDetails")
     private String contactDetails;
 
+    @Column(name="noOfRooms")
+    private Integer noOfRooms;
+
 }

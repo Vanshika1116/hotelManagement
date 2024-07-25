@@ -5,10 +5,13 @@ import com.example.HotelManagement.Repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.*;
-import org.springframework.data.jpa.domain.Specification;
+//import org.springframework.data.domain.*;
+//import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -76,5 +79,8 @@ public class HotelService {
         return hotelRepository.findAll(pageable);
     }
 
+    public Page<Hotel> searchHotels(int rating, int noOfRooms, Pageable pageable) {
+        return hotelRepository.findByRatingAndNoOfRoomsGreaterThanEqual(rating, noOfRooms, pageable);
+    }
 
 }
