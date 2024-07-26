@@ -4,8 +4,6 @@ import com.example.HotelManagement.Model.Hotel;
 import com.example.HotelManagement.Service.HotelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,10 +65,12 @@ public class HotelController {
     }
 
     @GetMapping("/hotelslist")
-    public Page<Hotel> getHotels(
-            @RequestParam int rating,
-            @RequestParam int noOfRooms,
-            @PageableDefault(page = 0, size = 5, sort = "id") Pageable pageable) {
-        return hotelService.searchHotels(rating, noOfRooms, pageable);
+    public List<Hotel> getHotels(
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Double maxRating,
+            @RequestParam(required = false) Integer minRooms,
+            @RequestParam(required = false) Integer maxRooms,
+            @RequestParam(required = false) String sortBy) {
+        return hotelService.getHotelsByCriteria(minRating, maxRating, minRooms, maxRooms, sortBy);
     }
 }

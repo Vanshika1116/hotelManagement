@@ -79,8 +79,9 @@ public class HotelService {
         return hotelRepository.findAll(pageable);
     }
 
-    public Page<Hotel> searchHotels(int rating, int noOfRooms, Pageable pageable) {
-        return hotelRepository.findByRatingAndNoOfRoomsGreaterThanEqual(rating, noOfRooms, pageable);
+    public List<Hotel> getHotelsByCriteria(Double minRating, Double maxRating, Integer minRooms, Integer maxRooms, String sortBy) {
+        Sort sort = Sort.by(Sort.Direction.ASC, sortBy != null ? sortBy : "id");
+        return hotelRepository.findHotelsByCriteria(minRating, maxRating, minRooms, maxRooms, sort);
     }
-
+    
 }
