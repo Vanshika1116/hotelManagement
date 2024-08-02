@@ -1,20 +1,21 @@
 package com.example.HotelManagement.Service;
 
+import com.example.HotelManagement.DTO.HotelDTO;
+import com.example.HotelManagement.DTO.PageRequestDTO;
+import com.example.HotelManagement.DTO.HotelSearchCriteriaDTO;
 import com.example.HotelManagement.Model.Hotel;
 import com.example.HotelManagement.Repository.HotelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
-//import org.springframework.data.domain.*;
-//import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -26,62 +27,76 @@ public class HotelService {
         return hotelRepository.existsById(hotelId);
     }
 
-    public Hotel addHotel(Hotel hotel) {
-        // Save and return the hotel entity
-        return hotelRepository.save(hotel);
+    public HotelDTO addHotel(HotelDTO hotelDTO) {
+        Hotel hotel = convertToEntity(hotelDTO);
+        Hotel savedHotel = hotelRepository.save(hotel);
+        return convertToDTO(savedHotel);
     }
 
-    public Hotel updateHotel(Hotel updatedHotel) {
-        // Save and return the updated hotel entity
-        return hotelRepository.save(updatedHotel);
+    public HotelDTO updateHotel(HotelDTO hotelDTO) {
+        Hotel hotel = convertToEntity(hotelDTO);
+        Hotel updatedHotel = hotelRepository.save(hotel);
+        return convertToDTO(updatedHotel);
     }
 
     public boolean deleteHotel(Long hotelId) {
         try {
-            // Check if hotel exists
             if (!hotelRepository.existsById(hotelId)) {
                 return false;
             }
             hotelRepository.deleteById(hotelId);
             return true;
         } catch (EmptyResultDataAccessException e) {
-            // Handle case where hotel with given ID is not found
             return false;
         } catch (DataAccessException e) {
-            // Handle database-related errors
             throw new RuntimeException("Database error", e);
         }
     }
 
-    public List<Hotel> getHotelById(List<Long> hotelId) {
+    public List<HotelDTO> getHotelById(List<Long> ids) {
         try {
-            List<Hotel> hotels = hotelRepository.findAllById(hotelId);
+            List<Hotel> hotels = hotelRepository.findAllById(ids);
             if (hotels.isEmpty()) {
-                return null; // or throw an exception if you prefer
+                return null;
             }
-            return hotels;
+            return hotels.stream().map(this::convertToDTO).collect(Collectors.toList());
         } catch (DataAccessException e) {
-            // Handle database-related errors
             throw new RuntimeException("Database error", e);
         }
     }
 
-    public Page<Hotel> getAllHotels(Integer pageNumber, Integer pageSize, String sortBy, String sortDirection) {
-        // Set the sort direction
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection.toUpperCase());
-        //The sortDirection parameter is expected to be a string that indicates the direction of sorting, either "ASC" for
-        // ascending or "DESC" for descending.
-
-        // Create Pageable instance with sorting
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortBy));
-
-        // Retrieve a page of hotels from the repository
-        return hotelRepository.findAll(pageable);
+    public Page<HotelDTO> getAllHotels(PageRequestDTO pageRequestDTO) {
+        Pageable pageable = PageRequest.of(pageRequestDTO.getPageNumber(), pageRequestDTO.getPageSize(), pageRequestDTO.getSort());
+        Page<Hotel> hotelPage = hotelRepository.findAll(pageable);
+        return hotelPage.map(this::convertToDTO);
     }
 
-    public List<Hotel> getHotelsByCriteria(Double minRating, Double maxRating, Integer minRooms, Integer maxRooms, String sortBy) {
-        Sort sort = Sort.by(Sort.Direction.ASC, sortBy != null ? sortBy : "id");
-        return hotelRepository.findHotelsByCriteria(minRating, maxRating, minRooms, maxRooms, sort);
+    public Page<HotelDTO> getHotelsByCriteria(HotelSearchCriteriaDTO searchCriteria, PageRequestDTO pageRequestDTO) {
+        Sort sort = Sort.by(Sort.Direction.ASC, searchCriteria.getSortBy() != null ? searchCriteria.getSortBy() : "id");
+        Pageable pageable = PageRequest.of(pageRequestDTO.getPageNumber(), pageRequestDTO.getPageSize(), sort);
+        Page<Hotel> hotelPage = hotelRepository.findHotelsByCriteria(searchCriteria.getMinRating(), searchCriteria.getMaxRating(), searchCriteria.getMinRooms(), searchCriteria.getMaxRooms(), pageable);
+        return hotelPage.map(this::convertToDTO);
     }
-    
+
+    private HotelDTO convertToDTO(Hotel hotel) {
+        return new HotelDTO(
+                hotel.getId(),
+                hotel.getHotelName(),
+                hotel.getAddress(),
+                hotel.getRating(),
+                hotel.getContactDetails(),
+                hotel.getNoOfRooms()
+        );
+    }
+
+    private Hotel convertToEntity(HotelDTO hotelDTO) {
+        return new Hotel(
+                hotelDTO.getId(),
+                hotelDTO.getHotelName(),
+                hotelDTO.getAddress(),
+                hotelDTO.getRating(),
+                hotelDTO.getContactDetails(),
+                hotelDTO.getNoOfRooms()
+        );
+    }
 }

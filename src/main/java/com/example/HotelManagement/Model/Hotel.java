@@ -12,9 +12,8 @@ import java.io.Serializable;
 @Entity //jpa annotation that specify class is an entity.
 @Table(name = "hotelTable")
 @Data
-@AllArgsConstructor  //these are lambok nootations which automatically sets getteers and setters
 @NoArgsConstructor
-@ToString
+@AllArgsConstructor
 public class Hotel implements Serializable {
 
     @Serial

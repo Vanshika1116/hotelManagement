@@ -14,16 +14,15 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
 
     List<Hotel> findAllByOrderByRatingDesc();
 
-
-    @Query("SELECT h FROM Hotel h WHERE " +
-            "(:minRating IS NULL OR h.rating >= :minRating) AND " +
-            "(:maxRating IS NULL OR h.rating <= :maxRating) AND " +
-            "(:minRooms IS NULL OR h.noOfRooms >= :minRooms) AND " +
-            "(:maxRooms IS NULL OR h.noOfRooms <= :maxRooms)")
-    List<Hotel> findHotelsByCriteria(@Param("minRating") Double minRating,
+    @Query("SELECT h FROM Hotel h WHERE (:minRating IS NULL OR h.rating >= :minRating) " +
+            "AND (:maxRating IS NULL OR h.rating <= :maxRating) " +
+            "AND (:minRooms IS NULL OR h.noOfRooms >= :minRooms) " +
+            "AND (:maxRooms IS NULL OR h.noOfRooms <= :maxRooms)")
+    Page<Hotel> findHotelsByCriteria(@Param("minRating") Double minRating,
                                      @Param("maxRating") Double maxRating,
                                      @Param("minRooms") Integer minRooms,
                                      @Param("maxRooms") Integer maxRooms,
-                                     Sort sort);
+                                     Pageable pageable);
+
 }
 

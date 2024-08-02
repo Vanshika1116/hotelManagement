@@ -1,6 +1,8 @@
 package com.example.HotelManagement.Controller;
 
-import com.example.HotelManagement.Model.Hotel;
+import com.example.HotelManagement.DTO.HotelDTO;
+import com.example.HotelManagement.DTO.PageRequestDTO;
+import com.example.HotelManagement.DTO.HotelSearchCriteriaDTO;
 import com.example.HotelManagement.Service.HotelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,16 +20,16 @@ public class HotelController {
     private final HotelService hotelService;
 
     @PostMapping("/save")
-    public ResponseEntity<Hotel> saveOrUpdateHotel(@RequestBody Hotel hotel) {
+    public ResponseEntity<HotelDTO> saveOrUpdateHotel(@RequestBody HotelDTO hotelDTO) {
         try {
-            if (hotel.getId() != null) {
-                if (!hotelService.existsById(hotel.getId())) {
+            if (hotelDTO.getId() != null) {
+                if (!hotelService.existsById(hotelDTO.getId())) {
                     return ResponseEntity.notFound().build();
                 }
-                Hotel updatedHotel = hotelService.updateHotel(hotel);
+                HotelDTO updatedHotel = hotelService.updateHotel(hotelDTO);
                 return ResponseEntity.ok(updatedHotel);
             } else {
-                Hotel newHotel = hotelService.addHotel(hotel);
+                HotelDTO newHotel = hotelService.addHotel(hotelDTO);
                 return ResponseEntity.status(HttpStatus.CREATED).body(newHotel);
             }
         } catch (Exception e) {
@@ -47,8 +49,8 @@ public class HotelController {
     }
 
     @GetMapping("/getById")
-    public ResponseEntity<List<Hotel>> getHotelById(@RequestParam List<Long> hotelId) {
-        List<Hotel> hotels = hotelService.getHotelById(hotelId);
+    public ResponseEntity<List<HotelDTO>> getHotelById(@RequestParam List<Long> hotelId) {
+        List<HotelDTO> hotels = hotelService.getHotelById(hotelId);
         if (hotels == null || hotels.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -56,21 +58,17 @@ public class HotelController {
     }
 
     @GetMapping("/list")
-    public Page<Hotel> listHotels(
-            @RequestParam(defaultValue = "0") Integer pageNumber,
-            @RequestParam(defaultValue = "5") Integer pageSize,
-            @RequestParam(defaultValue = "rating") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
-        return hotelService.getAllHotels(pageNumber, pageSize, sortBy, sortDirection);
+    public ResponseEntity<Page<HotelDTO>> listHotels(
+            @ModelAttribute PageRequestDTO pageRequestDTO) {
+        Page<HotelDTO> hotelsPage = hotelService.getAllHotels(pageRequestDTO);
+        return ResponseEntity.ok(hotelsPage);
     }
 
     @GetMapping("/hotelslist")
-    public List<Hotel> getHotels(
-            @RequestParam(required = false) Double minRating,
-            @RequestParam(required = false) Double maxRating,
-            @RequestParam(required = false) Integer minRooms,
-            @RequestParam(required = false) Integer maxRooms,
-            @RequestParam(required = false) String sortBy) {
-        return hotelService.getHotelsByCriteria(minRating, maxRating, minRooms, maxRooms, sortBy);
+    public ResponseEntity<Page<HotelDTO>> getHotels(
+            @ModelAttribute HotelSearchCriteriaDTO searchCriteriaDTO,
+            @ModelAttribute PageRequestDTO pageRequestDTO) {
+        Page<HotelDTO> hotelsPage = hotelService.getHotelsByCriteria(searchCriteriaDTO, pageRequestDTO);
+        return ResponseEntity.ok(hotelsPage);
     }
 }
